@@ -20,4 +20,4 @@ Este proyecto es una herramienta de scraping desarrollada en Python para extraer
 
 1. **Clona el repositorio**:
    ```bash
-   git clone <URL del repositorio>
+   git clone https://github.com/jgregoris/WebScraping_Javier.git
