@@ -1,14 +1,19 @@
 import psycopg2
+from dotenv import load_dotenv
+import os
+
+# Cargar variables de entorno
+load_dotenv()
 
 class Database:
     def __init__(self, dbname, user, password, host, port):
         # Constructor de la clase Database. Establece la conexión con la base de datos PostgreSQL.
         self.conn = psycopg2.connect(
-            dbname=dbname,
-            user=user,
-            password=password,
-            host=host,
-            port=port
+            dbname=dbname or os.getenv("DB_NAME"),
+            user=user or os.getenv("DB_USER"),
+            password=password or os.getenv("DB_PASSWORD"),
+            host=host or os.getenv("DB_HOST"),
+            port=port or os.getenv("DB_PORT")
         )
 
     def close(self):

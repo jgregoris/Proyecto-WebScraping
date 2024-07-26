@@ -1,5 +1,8 @@
-# Ignorar archivos específicos
+# Ignorar archivos específicos.
 test_db_connection.py
 
-# Ignorar carpetas __pycache__
+# Ignorar carpetas __pycache__.
 __pycache__/
+
+# Archivo dotenv para variables de entorno.
+.env
