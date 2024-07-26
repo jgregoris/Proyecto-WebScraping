@@ -9,26 +9,29 @@ DB_HOST = "localhost"
 DB_PORT = "5432"
 
 def main():
-    # Obtener las citas
+    # Obtener las citas utilizando la función de scraping
     quotes = scrape_quotes()
 
-    # Conectar a la base de datos
+    # Crear una instancia de la clase Database para conectar con la base de datos
     db = Database(DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)
 
     try:
         # Insertar datos en la base de datos
         for quote in quotes:
+            # Insertar o actualizar el autor y obtener su ID
             author_id = db.insert_author(quote['author'], {
                 'bio': quote['author_bio'],
                 'born_date': quote['author_born_date'],
                 'born_location': quote['author_born_location']
             })
+            # Insertar la cita y obtener su ID
             quote_id = db.insert_quote(quote['text'], author_id)
+            # Insertar las etiquetas y asociarlas con la cita
             for tag in quote['tags']:
                 tag_id = db.insert_tag(tag)
                 db.insert_quote_tag(quote_id, tag_id)
         
-        # Confirmar los cambios
+        # Confirmar los cambios en la base de datos
         db.commit()
         print("Datos insertados correctamente en la base de datos.")
     except Exception as e:
@@ -40,4 +43,5 @@ def main():
         db.close()
 
 if __name__ == "__main__":
+    # Ejecutar la función principal si este script se ejecuta directamente
     main()
