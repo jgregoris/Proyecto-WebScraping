@@ -1,50 +1,47 @@
-import requests
-from bs4 import BeautifulSoup
+from scraper import scrape_quotes
+from database import Database
 
-# Definimos una función para limpiar el texto
-def clean_text(text):
-    """Eliminar espacios en blanco innecesarios y normalizar el texto."""
-    return text.strip()
+# Configuración de la base de datos
+DB_NAME = "citas_autores"
+DB_USER = "postgres"
+DB_PASSWORD = "1234"
+DB_HOST = "localhost"
+DB_PORT = "5432"
 
-# Función principal para hacer scraping de las citas
-def scrape_quotes():
-    base_url = 'https://quotes.toscrape.com/page/' # URL base de la página.
-    page = 1 # Empezamos en primera página.
+def main():
+    # Obtener las citas utilizando la función de scraping
+    quotes = scrape_quotes()
 
-    # Bucle while que recorre todas las paginas de la web.
-    while True:
-        url = f'{base_url}{page}/' # Construye URL de pagina actual.
-        response = requests.get(url) # Obtiene contenido de la pagina.
+    # Crear una instancia de la clase Database para conectar con la base de datos
+    db = Database(DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)
 
-        # Si la respuesta no es 200 (pagina no encontrada), se rompe el bucle.
-        if response.status_code != 200:
-            break
-
-       # Analiza contenido HTML de la pagina web.     
-        soup = BeautifulSoup(response.text, 'html.parser')
-
-        # Extrae informacion de las citas.
-        quote_containers = soup.find_all('div', class_='quote')
-        # Si no hay citas se rompe el bucle.
-        if not quote_containers:
-            break
+    try:
+        # Insertar datos en la base de datos
+        for quote in quotes:
+            # Insertar o actualizar el autor y obtener su ID
+            author_id = db.insert_author(quote['author'], {
+                'bio': quote['author_bio'],
+                'born_date': quote['author_born_date'],
+                'born_location': quote['author_born_location']
+            })
+            # Insertar la cita y obtener su ID
+            quote_id = db.insert_quote(quote['text'], author_id)
+            # Insertar las etiquetas y asociarlas con la cita
+            for tag in quote['tags']:
+                tag_id = db.insert_tag(tag)
+                db.insert_quote_tag(quote_id, tag_id)
         
-        # Bucle que extrae, muestra y limpia las frases, autores y tags.
-        for container in quote_containers:
-            quote = clean_text(container.find('span', class_='text').get_text())
-            author = clean_text(container.find('small', class_='author').get_text())
-            tags = [clean_text(tag.get_text()) for tag in container.find_all('a', class_='tag')]
+        # Confirmar los cambios en la base de datos
+        db.commit()
+        print("Datos insertados correctamente en la base de datos.")
+    except Exception as e:
+        # En caso de error, revertir los cambios
+        db.rollback()
+        print(f"Error al insertar datos: {e}")
+    finally:
+        # Cerrar la conexión a la base de datos
+        db.close()
 
-            # Imprime información extraida (cita, autor y tags).
-            print(f'Quote: {quote}')
-            print(f'Author: {author}')
-            print(f'Tags: {", ".join(tags)}')
-            print('-' * 80) # Separación de cada cita para mejor visualización.
-
-        # Pasa a la siguiente pagina.
-        page += 1
-
-# Ejecutamos la función principal solo si el script se ejecuta directamente
-if __name__ == '__main__':
-    scrape_quotes()
-
+if __name__ == "__main__":
+    # Ejecutar la función principal si este script se ejecuta directamente
+    main()
