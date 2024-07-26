@@ -1,0 +1,7 @@
+beautifulsoup4==4.12.3
+pandas==2.2.2
+psycopg2==2.9.9
+python-dotenv==1.0.1
+requests==2.32.3
+sql==2022.4.0
+streamlit==1.36.0
