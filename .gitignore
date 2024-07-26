@@ -1,2 +1,5 @@
+# Ignorar archivos específicos
 test_db_connection.py
+
+# Ignorar carpetas __pycache__
 __pycache__/
